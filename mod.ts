@@ -1,13 +1,26 @@
 import { Application, send } from "https://deno.land/x/oak@v6.4.1/mod.ts";
 import api from "./api.ts";
+import * as log from "https://deno.land/std/log/mod.ts";
 
 const app = new Application();
 const PORT = 8000;
 
+await log.setup({
+    handlers: {
+        console: new log.handlers.ConsoleHandler("INFO")
+    },
+    loggers: {
+        defaults: {
+            level: "INFO",
+            handlers: ["console"]
+        }
+    }
+});
+
 app.use(async (ctx, next) => {
     await next();
     const time = ctx.response.headers.get("X-Response-Time");
-    console.log(`${ctx.request.method} ${ctx.request.url}: ${time}`);
+    log.info(`${ctx.request.method} ${ctx.request.url}: ${time}`);
 })
 
 app.use(async (ctx, next) => {
@@ -36,6 +49,7 @@ app.use(async (ctx) => {
 
 
 if (import.meta.main) {
+    log.info(`Starting server on port ${PORT}...`);
     await app.listen({port: PORT});
 }
 
